@@ -1,0 +1,24 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // Cambia por el correo con el que creaste tu usuario de barbero
+    function esBarbero() {
+      return request.auth != null
+        && request.auth.token.email == 'TU_CORREO@ejemplo.com';
+    }
+
+    match /clients/{code} {
+      // El código es el id del documento (largo y secreto):
+      // quien lo tiene puede leer SOLO esa tarjeta, nadie puede listar las demás.
+      allow get: if true;
+
+      // Solo el barbero ve la lista completa, crea, borra y marca sellos.
+      allow list, create, delete: if esBarbero();
+
+      // El cliente solo puede tocar el aviso "me toca corte" y guardar su token de avisos, nada más.
+      allow update: if esBarbero()
+        || request.resource.data.diff(resource.data).affectedKeys().hasOnly(['wantsCut', 'wantsAt', 'pushToken']);
+    }
+  }
+}

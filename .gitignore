@@ -1,0 +1,4 @@
+node_modules/
+.expo/
+google-services.json
+*.keystore
